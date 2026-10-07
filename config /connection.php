@@ -1,21 +1,20 @@
 <?php
-/*
- * DriveX - Database Connection
- * LOCAL DEVELOPMENT VERSION
- *
- * Later, when deploying to Hostinger, replace these values
- * with the database credentials from Hostinger.
- */
 
-$host = "localhost";
-$dbname = "car_rental";
-$username = "root";
-$password = "";
+$host = getenv('DB_HOST') ?: 'db';
+$dbname = getenv('DB_NAME') ?: 'car_rental';
+$username = getenv('DB_USER') ?: 'drivex';
+$password = getenv('DB_PASSWORD') ?: 'drivex_dev';
 
-$conn = new mysqli($host, $username, $password, $dbname);
+try {
+    $pdo = new PDO(
+        "mysql:host=$host;dbname=$dbname;charset=utf8mb4",
+        $username,
+        $password
+    );
 
-if ($conn->connect_error) {
-    die("Database connection failed: " . $conn->connect_error);
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+
+} catch (PDOException $e) {
+    die("Database connection failed: " . $e->getMessage());
 }
-
-$conn->set_charset("utf8mb4");
