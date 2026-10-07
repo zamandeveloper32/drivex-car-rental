@@ -1,11 +1,12 @@
 <?php
 
-$host = getenv('DB_HOST') ?: 'db';
-$dbname = getenv('DB_NAME') ?: 'car_rental';
-$username = getenv('DB_USER') ?: 'drivex';
-$password = getenv('DB_PASSWORD') ?: 'drivex_dev';
+$host = "sql104.infinityfree.com";
+$dbname = "if0_43110177_drivex";
+$username = "if0_43110177";
+$password = "1PDpN1AJZ74";
 
 try {
+
     $pdo = new PDO(
         "mysql:host=$host;dbname=$dbname;charset=utf8mb4",
         $username,
@@ -16,5 +17,7 @@ try {
     $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
 
 } catch (PDOException $e) {
-    die("Database connection failed: " . $e->getMessage());
+
+    die("Database connection failed.");
+
 }
