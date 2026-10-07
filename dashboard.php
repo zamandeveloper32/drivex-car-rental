@@ -1,113 +1,138 @@
 <?php
-require_once __DIR__ . "/includes/auth.php";
-require_once __DIR__ . "/config/connection.php";
 
-$pageTitle = "Dashboard";
+require_once 'includes/auth.php';
+require_once 'config/connection.php';
+require_once 'includes/functions.php';
 
-function tableCount(mysqli $conn, string $table): int
-{
-    $allowed = ['cars', 'customers', 'rentals'];
-    if (!in_array($table, $allowed, true)) {
-        return 0;
-    }
+$totalCars = $pdo->query(
+    "SELECT COUNT(*) FROM cars"
+)->fetchColumn();
 
-    $result = $conn->query("SELECT COUNT(*) AS total FROM `$table`");
-    return (int)$result->fetch_assoc()['total'];
-}
+$availableCars = $pdo->query(
+    "SELECT COUNT(*) FROM cars WHERE availability = 'Available'"
+)->fetchColumn();
 
-$totalCars = tableCount($conn, "cars");
-$totalCustomers = tableCount($conn, "customers");
-$totalRentals = tableCount($conn, "rentals");
+$totalCustomers = $pdo->query(
+    "SELECT COUNT(*) FROM customers"
+)->fetchColumn();
 
-$availableCars = 0;
-$result = $conn->query("SELECT COUNT(*) AS total FROM cars WHERE availability = 'Available'");
-if ($result) {
-    $availableCars = (int)$result->fetch_assoc()['total'];
-}
+$totalRentals = $pdo->query(
+    "SELECT COUNT(*) FROM rentals"
+)->fetchColumn();
 
-$totalRevenue = 0;
-$result = $conn->query("SELECT COALESCE(SUM(total_cost), 0) AS revenue FROM rentals");
-if ($result) {
-    $totalRevenue = (float)$result->fetch_assoc()['revenue'];
-}
+$activeRentals = $pdo->query(
+    "SELECT COUNT(*) FROM rentals WHERE status = 'Active'"
+)->fetchColumn();
 
-require_once __DIR__ . "/includes/header.php";
+$totalRevenue = $pdo->query(
+    "SELECT COALESCE(SUM(total_cost), 0) FROM rentals"
+)->fetchColumn();
+
+require_once 'includes/header.php';
 ?>
 
-<div class="welcome-card p-4 p-md-5 mb-4">
-    <div class="row align-items-center g-4">
-        <div class="col-lg-8">
-            <p class="text-uppercase small fw-bold opacity-75 mb-2">Administrator Dashboard</p>
-            <h1 class="display-6 fw-bold mb-2">
-                Welcome back, <?= e($_SESSION['admin_name'] ?? 'Administrator') ?>.
-            </h1>
-            <p class="mb-0 opacity-75">
-                Manage vehicles, customers, rentals and reports from one place.
-            </p>
-        </div>
-        <div class="col-lg-4 text-lg-end">
-            <span class="badge bg-light text-dark p-3">
-                <?= date("l, d F Y") ?>
-            </span>
-        </div>
-    </div>
-</div>
+<div class="container py-4">
 
-<div class="row g-4 mb-4">
-    <div class="col-md-6 col-xl-3">
-        <div class="stat-card p-4 h-100">
-            <div class="text-secondary small fw-semibold">TOTAL CARS</div>
-            <div class="stat-number"><?= $totalCars ?></div>
-            <div class="text-success small"><?= $availableCars ?> currently available</div>
-        </div>
+    <div class="mb-4">
+        <h2 class="fw-bold">
+            Welcome to DriveX
+        </h2>
+
+        <p class="text-muted">
+            Car Rental Management Dashboard
+        </p>
     </div>
 
-    <div class="col-md-6 col-xl-3">
-        <div class="stat-card p-4 h-100">
-            <div class="text-secondary small fw-semibold">CUSTOMERS</div>
-            <div class="stat-number"><?= $totalCustomers ?></div>
-            <div class="text-secondary small">Registered customers</div>
-        </div>
-    </div>
+    <div class="row g-4">
 
-    <div class="col-md-6 col-xl-3">
-        <div class="stat-card p-4 h-100">
-            <div class="text-secondary small fw-semibold">RENTALS</div>
-            <div class="stat-number"><?= $totalRentals ?></div>
-            <div class="text-secondary small">Rental records</div>
-        </div>
-    </div>
-
-    <div class="col-md-6 col-xl-3">
-        <div class="stat-card p-4 h-100">
-            <div class="text-secondary small fw-semibold">REVENUE</div>
-            <div class="stat-number" style="font-size:1.55rem;">
-                <?= formatCurrency($totalRevenue) ?>
+        <div class="col-md-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+                    <h6 class="text-muted">Total Cars</h6>
+                    <h2 class="fw-bold">
+                        <?= (int)$totalCars ?>
+                    </h2>
+                    <small class="text-success">
+                        <?= (int)$availableCars ?> Available
+                    </small>
+                </div>
             </div>
-            <div class="text-secondary small">Recorded rental revenue</div>
         </div>
+
+        <div class="col-md-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+                    <h6 class="text-muted">Customers</h6>
+                    <h2 class="fw-bold">
+                        <?= (int)$totalCustomers ?>
+                    </h2>
+                    <a href="customers.php">
+                        Manage Customers
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+                    <h6 class="text-muted">Total Rentals</h6>
+                    <h2 class="fw-bold">
+                        <?= (int)$totalRentals ?>
+                    </h2>
+                    <small class="text-warning">
+                        <?= (int)$activeRentals ?> Active
+                    </small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+                    <h6 class="text-muted">Total Revenue</h6>
+                    <h2 class="fw-bold">
+                        <?= formatCurrency($totalRevenue) ?>
+                    </h2>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+
+                    <h6 class="text-muted">
+                        Quick Actions
+                    </h6>
+
+                    <a
+                        href="add_car.php"
+                        class="btn btn-primary btn-sm me-2"
+                    >
+                        Add Car
+                    </a>
+
+                    <a
+                        href="add_customer.php"
+                        class="btn btn-success btn-sm me-2"
+                    >
+                        Add Customer
+                    </a>
+
+                    <a
+                        href="add_rental.php"
+                        class="btn btn-dark btn-sm"
+                    >
+                        New Rental
+                    </a>
+
+                </div>
+            </div>
+        </div>
+
     </div>
+
 </div>
 
-<div class="table-card p-4">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <div>
-            <h2 class="h5 fw-bold mb-1">DriveX Control Center</h2>
-            <p class="text-secondary small mb-0">Choose a module to continue.</p>
-        </div>
-    </div>
-
-    <div class="row g-3">
-        <div class="col-md-4">
-            <a href="cars.php" class="btn btn-outline-primary w-100 py-3">🚗 Manage Cars</a>
-        </div>
-        <div class="col-md-4">
-            <a href="customers.php" class="btn btn-outline-primary w-100 py-3">👥 Manage Customers</a>
-        </div>
-        <div class="col-md-4">
-            <a href="rentals.php" class="btn btn-outline-primary w-100 py-3">📋 Manage Rentals</a>
-        </div>
-    </div>
-</div>
-
-<?php require_once __DIR__ . "/includes/footer.php"; ?>
+<?php require_once 'includes/footer.php'; ?>
