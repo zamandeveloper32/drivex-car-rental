@@ -1,0 +1,23 @@
+services:
+
+  app:
+    image: mcr.microsoft.com/devcontainers/php:1-8.3-bookworm
+    volumes:
+      - ..:/workspaces/${localWorkspaceFolderBasename}:cached
+    command: sleep infinity
+    depends_on:
+      - db
+
+  db:
+    image: mariadb:11
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: car_rental
+      MYSQL_USER: drivex
+      MYSQL_PASSWORD: drivex_dev
+      MYSQL_ROOT_PASSWORD: root_dev
+    volumes:
+      - mariadb-data:/var/lib/mysql
+
+volumes:
+  mariadb-data:
